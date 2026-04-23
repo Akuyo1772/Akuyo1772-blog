@@ -1,0 +1,127 @@
+---
+import type { CollectionEntry } from "astro:content";
+import path from "node:path";
+import ImageWrapper from "@components/misc/ImageWrapper.astro";
+import I18nKey from "@i18n/i18nKey";
+import { i18n } from "@i18n/translation";
+import { formatDateTimeToYYYYMMDDHHmm } from "@utils/date-utils";
+import {
+	getEssayDisplayTitle,
+	getEssayExcerptFromBody,
+	getEssayRouteSlug,
+} from "@utils/essay-utils";
+import { getDir, getEssayUrlByRouteSlug } from "@utils/url-utils";
+import { Icon } from "astro-icon/components";
+
+interface Props {
+	entry: CollectionEntry<"essays">;
+	galleryImages?: { src: string; alt?: string }[];
+	class?: string;
+	style?: string;
+}
+
+const { entry, style, galleryImages = [] } = Astro.props;
+const className = Astro.props.class;
+
+const routeSlug = getEssayRouteSlug(entry);
+const url = getEssayUrlByRouteSlug(routeSlug);
+const manualTitle = (entry.data.title ?? "").trim();
+const seoTitle = getEssayDisplayTitle(entry);
+const excerpt = getEssayExcerptFromBody(entry.body);
+const isPinned = Number(entry.data.pin ?? 0) > 0;
+
+const galleryTotal = Array.isArray(galleryImages) ? galleryImages.length : 0;
+const galleryShown = Array.isArray(galleryImages)
+	? galleryImages.slice(0, 9)
+	: [];
+const galleryRemaining = Math.max(0, galleryTotal - galleryShown.length);
+
+const entryDir = getDir(entry.id);
+const galleryBasePath = path.join(
+	"content/essays/",
+	entryDir === "/" ? "" : entryDir,
+);
+---
+
+<div
+	class:list={[
+		"card-base flex flex-col w-full rounded-[var(--radius-large)] overflow-hidden relative",
+		className,
+	]}
+	style={style}
+>
+	<div class="px-6 md:px-9 pt-6 md:pt-7 pb-6 relative">
+		{galleryShown.length > 0 && (
+			<div class="mb-4">
+				<a href={url} aria-label={seoTitle} class="block">
+					<div class="grid grid-cols-3 gap-2">
+						{galleryShown.map((img, index) => {
+							const isLastShown = index === galleryShown.length - 1;
+							return (
+								<div class="relative aspect-square overflow-hidden rounded-lg bg-black/5 dark:bg-white/10 cursor-pointer">
+									<ImageWrapper
+										src={img.src}
+										alt={img.alt || ""}
+										basePath={galleryBasePath}
+										class="w-full h-full"
+									/>
+									{isLastShown && galleryRemaining > 0 && (
+										<div class="absolute inset-0 bg-black/40 flex items-end justify-end p-2">
+											<span class="text-white text-lg font-semibold leading-none">
+												+{galleryRemaining}
+											</span>
+										</div>
+									)}
+								</div>
+						);
+					})}
+					</div>
+				</a>
+			</div>
+		)}
+
+		{manualTitle ? (
+			<a
+				href={url}
+				class="transition group w-full block font-bold mb-3 text-2xl md:text-3xl text-90
+			hover:text-[var(--primary)] dark:hover:text-[var(--primary)]
+			active:text-[var(--title-active)] dark:active:text-[var(--title-active)]"
+			>
+				<span class="inline-flex items-center gap-2 align-middle">
+					{isPinned && (
+						<span class="inline-flex items-center rounded-md px-2 py-0.5 text-lg md:text-xl leading-none font-semibold bg-[var(--primary)]/10 text-[var(--primary)]">
+							<Icon name="material-symbols:keep-rounded" class="mr-1 text-base"></Icon>
+							{i18n(I18nKey.pinned)}
+						</span>
+					)}
+					<span>{manualTitle}</span>
+				</span>
+			</a>
+		) : (
+			<>
+				{isPinned && (
+					<div class="mb-2">
+						<span class="inline-flex items-center rounded-md px-2 py-0.5 text-lg leading-none font-semibold bg-[var(--primary)]/10 text-[var(--primary)]">
+							<Icon name="material-symbols:keep-rounded" class="mr-1 text-base"></Icon>
+							{i18n(I18nKey.pinned)}
+						</span>
+					</div>
+				)}
+				<a href={url} aria-label={seoTitle} class="absolute inset-0" />
+			</>
+		)}
+
+		<div class="flex flex-wrap text-neutral-500 dark:text-neutral-400 items-center gap-3 mb-4">
+			<span class="text-50 text-sm font-medium">
+				{formatDateTimeToYYYYMMDDHHmm(entry.data.published)}
+			</span>
+			{entry.data.tags?.length ? (
+				<span class="text-50 text-sm font-medium">· {entry.data.tags.join(" / ")}</span>
+			) : null}
+		</div>
+
+		{excerpt && (
+			<div class="transition text-75 pr-2 line-clamp-3">{excerpt}</div>
+		)}
+	</div>
+</div>

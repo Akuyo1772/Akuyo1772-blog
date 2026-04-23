@@ -1,0 +1,51 @@
+import Key from "../i18nKey";
+import type { Translation } from "../translation";
+
+export const es: Translation = {
+	[Key.home]: "Inicio",
+	[Key.passage]: "Publicaciones",
+	[Key.notes]: "Notas",
+	[Key.essays]: "Ensayos",
+	[Key.about]: "Portadilla",
+	[Key.archive]: "Índice",
+	[Key.friends]: "Amigos",
+	[Key.search]: "Buscar",
+
+	[Key.tags]: "Etiquetas",
+	[Key.categories]: "Categorías",
+	[Key.recentPosts]: "Publicaciones recientes",
+	[Key.recentEssays]: "Ensayos recientes",
+	[Key.noPosts]: "Aún no hay publicaciones.",
+	[Key.noEssays]: "Aún no hay ensayos.",
+	[Key.essaysDescription]: "Notas cortas y pensamientos fragmentados",
+	[Key.passageDescription]: "Publicaciones y artículos largos",
+
+	[Key.comments]: "Comentarios",
+	[Key.commentsClosed]: "Los comentarios están cerrados",
+	[Key.pinned]: "Fijado",
+
+	[Key.untitled]: "Sin título",
+	[Key.uncategorized]: "Sin categoría",
+	[Key.noTags]: "Sin etiquetas",
+
+	[Key.wordCount]: "palabra",
+	[Key.wordsCount]: "palabras",
+	[Key.minuteCount]: "minuto",
+	[Key.minutesCount]: "minutos",
+	[Key.postCount]: "publicación",
+	[Key.postsCount]: "publicaciones",
+
+	[Key.themeColor]: "Color del tema",
+
+	[Key.lightMode]: "Claro",
+	[Key.darkMode]: "Oscuro",
+	[Key.systemMode]: "Sistema",
+
+	[Key.more]: "Más",
+	[Key.collapse]: "Contraer",
+
+	[Key.author]: "Autor",
+	[Key.publishedAt]: "Publicado el",
+	[Key.license]: "Licencia",
+	[Key.footnotes]: "Footnotes",
+};

@@ -1,0 +1,95 @@
+---
+import { Icon } from "astro-icon/components";
+import I18nKey from "../../i18n/i18nKey";
+import { i18n } from "../../i18n/translation";
+
+interface Props {
+	id: string;
+	name?: string;
+	isCollapsed?: boolean;
+	canCollapse?: boolean;
+	collapsedHeight?: string;
+	class?: string;
+	style?: string;
+}
+const { id, name, isCollapsed, canCollapse, collapsedHeight, style } =
+	Astro.props;
+const className = Astro.props.class;
+---
+<widget-layout data-id={id} data-is-collapsed={String(isCollapsed)} class={"pb-4 card-base " + className} style={style}>
+    <div class="font-bold transition text-lg text-neutral-900 dark:text-neutral-100 relative ml-8 mt-4 mb-2
+        before:w-1 before:h-4 before:rounded-md before:bg-[var(--primary)]
+        before:absolute before:left-[-16px] before:top-[5.5px]">{name}</div>
+    <div id={id} class:list={["collapse-wrapper px-4 overflow-hidden", {"collapsed": isCollapsed}]}>
+        <slot></slot>
+    </div>
+    {isCollapsed && (
+        <div class="px-4 mt-3 -mb-2">
+            {canCollapse ? (
+                <button class="btn-plain rounded-lg w-full h-9 widget-toggle-btn">
+                    <div class="widget-toggle-more text-[var(--primary)] flex items-center justify-center gap-2 -translate-x-2">
+                        <Icon name="material-symbols:more-horiz" class="text-[1.75rem]"></Icon> {i18n(I18nKey.more)}
+                    </div>
+                    <div class="widget-toggle-collapse hidden text-[var(--primary)] flex items-center justify-center gap-2 -translate-x-2">
+                        <Icon name="material-symbols:expand-less-rounded" class="text-[1.75rem]"></Icon> {i18n(I18nKey.collapse)}
+                    </div>
+                </button>
+            ) : (
+                <button class="btn-plain rounded-lg w-full h-9 widget-expand-btn">
+                    <div class="text-[var(--primary)] flex items-center justify-center gap-2 -translate-x-2">
+                        <Icon name="material-symbols:more-horiz" class="text-[1.75rem]"></Icon> {i18n(I18nKey.more)}
+                    </div>
+                </button>
+            )}
+        </div>
+    )}
+</widget-layout>
+
+<style define:vars={{ collapsedHeight }}>
+    .collapsed {
+        height: var(--collapsedHeight);
+    }
+</style>
+
+<script>
+    class WidgetLayout extends HTMLElement {
+        constructor() {
+            super();
+
+            if (this.dataset.isCollapsed !== "true")
+                return;
+
+            const id = this.dataset.id;
+            const wrapper = this.querySelector(`#${id}`);
+            const expandBtn = this.querySelector('.widget-expand-btn');
+            const toggleBtn = this.querySelector('.widget-toggle-btn');
+            const toggleMore = this.querySelector('.widget-toggle-more');
+            const toggleCollapse = this.querySelector('.widget-toggle-collapse');
+
+            expandBtn?.addEventListener('click', () => {
+                wrapper?.classList.remove('collapsed');
+                expandBtn.classList.add('hidden');
+            });
+
+            if (toggleBtn && wrapper) {
+                let expanded = false;
+                toggleBtn.addEventListener('click', () => {
+                    expanded = !expanded;
+                    if (expanded) {
+                        wrapper.classList.remove('collapsed');
+                        toggleMore?.classList.add('hidden');
+                        toggleCollapse?.classList.remove('hidden');
+                    } else {
+                        wrapper.classList.add('collapsed');
+                        toggleCollapse?.classList.add('hidden');
+                        toggleMore?.classList.remove('hidden');
+                    }
+                });
+            }
+        }
+    }
+
+    if (!customElements.get("widget-layout")) {
+        customElements.define("widget-layout", WidgetLayout);
+    }
+</script>
