@@ -12,8 +12,8 @@ import type {
 import { HomeSectionPreset, LinkPreset } from "./types/config";
 
 export const siteConfig: SiteConfig = {
-	title: "我的博客",
-	subtitle: "一个由 Kirari 驱动的个人博客",
+	title: "镜面迷宫",
+	subtitle: "Akuyo's Personal Blog",
 	siteStartDate: "2024-01-01",
 	dateTime: {
 		timeZone: "+08:00",
