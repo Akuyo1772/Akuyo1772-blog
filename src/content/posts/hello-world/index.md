@@ -5,7 +5,7 @@ description: '我的第一篇博客文章'
 image: './images/cover.png'
 tags: ['hello', 'blog']
 category: '入门'
-draft: true
+draft: false
 pin: 1
 lang: ""
 comments: true
