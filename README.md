@@ -153,6 +153,4 @@ glassConfig: {
 
 ## 许可证
 
-MIT 许可证 - 详情见 [LICENSE](LICENSE)# Akuyo1772-blog
-# Akuyo1772-blog
-# Akuyo1772-blog
+MIT 许可证 - 详情见 [LICENSE](LICENSE)

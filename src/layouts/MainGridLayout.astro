@@ -91,7 +91,7 @@ const isHomePage = pathsEqual(Astro.url.pathname, url("/"));
 <slot slot="head" name="head"></slot>
 <div id="top-row" class="z-50 pointer-events-none fixed top-0 left-0 right-0 transition-all duration-700 w-full" class:list={[""]}>
     <div id="navbar-wrapper" class="pointer-events-auto transition-all">
-        <Navbar banner={banner} bannerBasePath={bannerBasePath}></Navbar>
+        <Navbar banner={banner} bannerBasePath={bannerBasePath} currentPath={Astro.url.pathname}></Navbar>
     </div>
 </div>
 
@@ -111,13 +111,13 @@ const isHomePage = pathsEqual(Astro.url.pathname, url("/"));
     mx-auto gap-4 px-1 md:px-2"
         >
             <!-- Banner image credit -->
-            {hasBannerCredit && <a href={siteConfig.banner.credit.url} id="banner-credit" target="_blank" rel="noopener" aria-label="Visit image source"
+            {hasBannerCredit && <a href={siteConfig.banner.credit.url} id="banner-credit" target="_blank" rel="noopener noreferrer" aria-label="访问图片来源"
                                    class:list={["group onload-animation transition-all absolute flex justify-center items-center rounded-full " +
                                    "px-3 right-4 -top-[3.25rem] bg-black/60 hover:bg-black/70 h-9", {"hover:pr-9 active:bg-black/80": hasBannerLink}]}
             >
-                <Icon class="text-white/75 text-[1.25rem] mr-1" name="material-symbols:copyright-outline-rounded" ></Icon>
+                <Icon aria-hidden="true" class="text-white/75 text-[1.25rem] mr-1" name="material-symbols:copyright-outline-rounded" ></Icon>
                 <div class="text-white/75 text-xs">{siteConfig.banner.credit.text}</div>
-                <Icon class:list={["transition absolute text-[oklch(0.75_0.14_var(--hue))] right-4 text-[0.75rem] opacity-0",
+                <Icon aria-hidden="true" class:list={["transition absolute text-[oklch(0.75_0.14_var(--hue))] right-4 text-[0.75rem] opacity-0",
                     {"group-hover:opacity-100": hasBannerLink}]}
                       name="fa6-solid:arrow-up-right-from-square">
                 </Icon>
@@ -133,8 +133,8 @@ const isHomePage = pathsEqual(Astro.url.pathname, url("/"));
                 contentType={resolvedSidebarContentType}
             ></SideBar>
 
-            <main id="swup-container" class:list={["transition-swup-fade overflow-hidden min-w-0", { "order-1 lg:order-none": !isHomePage }]}>
-                <div id="content-wrapper" class="onload-animation">
+            <main id="swup-container" tabindex="-1" class:list={["transition-swup-fade overflow-hidden min-w-0", { "order-1 lg:order-none": !isHomePage }]}>
+                <div id="content-wrapper">
                     <!-- the overflow-hidden here prevent long text break the layout-->
                     <!-- make id different from windows.swup global property -->
                     <slot></slot>
@@ -144,7 +144,7 @@ const isHomePage = pathsEqual(Astro.url.pathname, url("/"));
                 </div>
             </main>
 
-            <aside id="right-sidebar" class="hidden lg:block">
+            <aside id="right-sidebar" aria-label="文章目录和站点统计" class="hidden lg:block">
                 <div id="right-sidebar-content" class="sticky top-[5.5rem]">
                     {hasRightToc ? (
                         <div id="toc-wrapper">

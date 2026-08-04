@@ -3,3 +3,7 @@
 
 declare module "@fontsource-variable/jetbrains-mono";
 declare module "@fontsource-variable/jetbrains-mono/*";
+declare module "*.css?inline" {
+	const css: string;
+	export default css;
+}

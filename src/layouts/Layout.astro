@@ -20,7 +20,6 @@ import {
 import { defaultFavicons } from "../constants/icon";
 import type { Favicon, SiteBackground } from "../types/config";
 import { pathsEqual, url } from "../utils/url-utils";
-import "katex/dist/katex.css";
 
 interface Props {
 	title?: string;
@@ -251,6 +250,7 @@ const bannerOffset =
 	<body class=" min-h-screen transition " class:list={[{"lg:is-home": isHomePage, "enable-banner": enableBanner}]}
 		  data-overlayscrollbars-initialize
 	>
+		<a class="skip-link" href="#swup-container">跳转到主要内容</a>
 		{!disableBackground && (
 			<div id="site-background" class="fixed inset-0 -z-10 pointer-events-none">
 				{useImageBackground && backgroundImageSrc ? (
@@ -261,8 +261,8 @@ const bannerOffset =
 						class="w-full h-full !transition-none"
 						overlayTransition={false}
 						loading="eager"
-						decoding="sync"
-						fetchPriority="high"
+						decoding="async"
+						fetchPriority="low"
 						style={`opacity: ${backgroundOpacity};`}
 					/>
 				) : (
@@ -314,6 +314,29 @@ const bannerOffset =
 	.navbar-hidden {
 		@apply opacity-0 -translate-y-16
 	}
+	.skip-link {
+		@apply fixed left-4 top-0 z-[100000] -translate-y-full rounded-lg px-4 py-3 font-bold text-white transition-transform;
+		background-color: var(--deep-text);
+	}
+	.skip-link:focus {
+		@apply translate-y-4;
+	}
+}
+
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+	outline: 3px solid var(--primary) !important;
+	outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		scroll-behavior: auto !important;
+		transition-duration: 0.01ms !important;
+	}
 }
 
 /* About-page badge row: auto-wrap badges */
@@ -335,13 +358,6 @@ const bannerOffset =
 </style>
 
 <script>
-import 'overlayscrollbars/overlayscrollbars.css';
-import {
-	OverlayScrollbars,
-	// ScrollbarsHidingPlugin,
-	// SizeObserverPlugin,
-	// ClickScrollPlugin
-} from 'overlayscrollbars';
 import {getHue, getStoredTheme, setHue, setTheme} from "../utils/setting-utils";
 import {pathsEqual, url} from "../utils/url-utils";
 import {
@@ -396,6 +412,9 @@ function disableAnimation() {
 */
 
 const bannerEnabled = !!document.getElementById('banner-wrapper')
+let overlayScrollbarsModule: typeof import('overlayscrollbars') | undefined;
+let overlayScrollbarsCssLoaded = false;
+let katexCssLoaded = false;
 const SIDEBAR_OUT_ANIMATION_DURATION = 200;
 const SIDEBAR_IN_ANIMATION_DURATION = 220;
 let sidebarOutAnimations: Animation[] = [];
@@ -482,7 +501,14 @@ function setClickOutsideToClose(panel: string, ignores: string[]) {
 				return;
 			}
 		}
-		panelDom!.classList.add("float-panel-closed");
+		panelDom?.classList.add("float-panel-closed");
+		panelDom?.setAttribute("aria-hidden", "true");
+		const switchId = {
+			"display-setting": "display-settings-switch",
+			"nav-menu-panel": "nav-menu-switch",
+			"search-panel": "search-switch",
+		}[panel];
+		if (switchId) document.getElementById(switchId)?.setAttribute("aria-expanded", "false");
 	});
 }
 setClickOutsideToClose("display-setting", ["display-setting", "display-settings-switch"])
@@ -499,7 +525,33 @@ function loadHue() {
 	setHue(getHue())
 }
 
-function initCustomScrollbar() {
+async function loadOverlayScrollbars() {
+	if (!overlayScrollbarsModule) {
+		if (!overlayScrollbarsCssLoaded) {
+			const { default: css } = await import('overlayscrollbars/overlayscrollbars.css?inline');
+			const style = document.createElement('style');
+			style.dataset.runtimeStyle = 'overlayscrollbars';
+			style.textContent = css;
+			document.head.appendChild(style);
+			overlayScrollbarsCssLoaded = true;
+		}
+		overlayScrollbarsModule = await import('overlayscrollbars');
+	}
+	return overlayScrollbarsModule;
+}
+
+async function loadKatexStyles() {
+	if (katexCssLoaded || !document.querySelector('.katex, .katex-display')) return;
+	const { default: css } = await import('katex/dist/katex.css?inline');
+	const style = document.createElement('style');
+	style.dataset.runtimeStyle = 'katex';
+	style.textContent = css;
+	document.head.appendChild(style);
+	katexCssLoaded = true;
+}
+
+async function initCustomScrollbar() {
+	const { OverlayScrollbars } = await loadOverlayScrollbars();
 	const bodyElement = document.querySelector('body');
 	if (!bodyElement) return;
 	OverlayScrollbars(
@@ -580,8 +632,17 @@ function init() {
 	// disableAnimation()()		// TODO
 	loadTheme();
 	loadHue();
-	initCustomScrollbar();
 	showBanner();
+	void loadKatexStyles();
+	scheduleIdle(() => initCustomScrollbar());
+}
+
+function scheduleIdle(callback: () => void | Promise<void>) {
+	if ('requestIdleCallback' in window) {
+		window.requestIdleCallback(() => void callback(), { timeout: 1200 });
+		return;
+	}
+	setTimeout(() => void callback(), 300);
 }
 
 function getExpectedSidebarContentType(pathname: string) {
@@ -681,6 +742,38 @@ async function syncSidebarIfNeeded() {
 init();
 
 const setup = () => {
+	// Workaround for Firefox bug: clicking links with non-ASCII URLs
+	// navigates to / instead of the target URL.
+	const needsWorkaround = /firefox/i.test(navigator.userAgent);
+	if (needsWorkaround) {
+		document.addEventListener('click', (e) => {
+			const el = (e.target as Element)?.closest?.('a[href]');
+			if (!el || el.tagName !== 'A') return;
+			const a = el as HTMLAnchorElement;
+			if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+			const rawHref = a.getAttribute('href') || '';
+			const isNonAscii = /[^\x00-\x7F]/.test(rawHref)
+				|| /%[89A-Fa-f][0-9A-Fa-f]/.test(rawHref);
+			if (!rawHref.startsWith('/') || !isNonAscii) return;
+			if (a.closest('[data-no-swup]')) return;
+			const resolved = a.href;
+			if (!resolved || resolved === window.location.href) return;
+			try {
+				const target = new URL(resolved);
+				if (target.origin !== window.location.origin) return;
+			} catch {
+				return;
+			}
+			const currentPath = window.location.pathname + window.location.search;
+			const resolvedUrl = new URL(resolved);
+			const targetPath = resolvedUrl.pathname + resolvedUrl.search;
+			if (targetPath === currentPath) return;
+			e.preventDefault();
+			e.stopPropagation();
+			window.location.assign(resolved);
+		}, true);
+	}
+
 	// TODO: temp solution to change the height of the banner
 /*
 	window.swup.hooks.on('animation:out:start', () => {
@@ -710,7 +803,10 @@ const setup = () => {
 			navbar.classList.add('navbar-hidden')
 		}
 	})
-	window.swup.hooks.on('content:replace', initCustomScrollbar)
+	window.swup.hooks.on('content:replace', () => {
+		void loadKatexStyles()
+		scheduleIdle(() => initCustomScrollbar())
+	})
 	window.swup.hooks.on('visit:start', (visit: {to: {url: string}, from?: {url: string}}) => {
 		const toPathname = new URL(visit.to.url, window.location.origin).pathname;
 		const fromPathname = visit.from?.url
@@ -811,10 +907,16 @@ function scrollFunction() {
 	let bannerHeight = window.innerHeight * (BANNER_HEIGHT / 100)
 
 	if (backToTopBtn) {
-		if (document.body.scrollTop > bannerHeight || document.documentElement.scrollTop > bannerHeight) {
+		const shouldShow = document.body.scrollTop > bannerHeight || document.documentElement.scrollTop > bannerHeight;
+		const backToTopButton = backToTopBtn.querySelector('button');
+		if (shouldShow) {
 			backToTopBtn.classList.remove('hide')
+			backToTopBtn.setAttribute('aria-hidden', 'false');
+			backToTopButton?.setAttribute('tabindex', '0');
 		} else {
 			backToTopBtn.classList.add('hide')
+			backToTopBtn.setAttribute('aria-hidden', 'true');
+			backToTopButton?.setAttribute('tabindex', '-1');
 		}
 	}
 
@@ -841,16 +943,30 @@ window.onresize = () => {
 </script>
 
 <script>
-import PhotoSwipeLightbox from "photoswipe/lightbox"
-import "photoswipe/style.css"
+import type PhotoSwipeLightbox from "photoswipe/lightbox"
 
-let lightbox: PhotoSwipeLightbox
-let pswp = import("photoswipe")
+let lightbox: PhotoSwipeLightbox | undefined
+let photoSwipeModule: Promise<typeof import("photoswipe")> | undefined
 
-function createPhotoSwipe() {
+async function createPhotoSwipe() {
+	if (lightbox || !document.querySelector(".custom-md img, #post-cover img")) return
+
+	const [{ default: PhotoSwipeLightbox }, , { default: photoSwipeCss }] = await Promise.all([
+		import("photoswipe/lightbox"),
+		(photoSwipeModule ??= import("photoswipe")),
+		import("photoswipe/style.css?inline"),
+	])
+	if (!document.querySelector(".custom-md img, #post-cover img")) return
+	if (!document.querySelector('style[data-runtime-style="photoswipe"]')) {
+		const style = document.createElement('style');
+		style.dataset.runtimeStyle = 'photoswipe';
+		style.textContent = photoSwipeCss;
+		document.head.appendChild(style);
+	}
+
 	lightbox = new PhotoSwipeLightbox({
 		gallery: ".custom-md img, #post-cover img",
-		pswpModule: () => pswp,
+		pswpModule: () => photoSwipeModule!,
 		closeSVG: '<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#ffffff"><path d="M480-424 284-228q-11 11-28 11t-28-11q-11-11-11-28t11-28l196-196-196-196q-11-11-11-28t11-28q11-11 28-11t28 11l196 196 196-196q11-11 28-11t28 11q11 11 11 28t-11 28L536-480l196 196q11 11 11 28t-11 28q-11 11-28 11t-28-11L480-424Z"/></svg>',
 		zoomSVG: '<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#ffffff"><path d="M340-540h-40q-17 0-28.5-11.5T260-580q0-17 11.5-28.5T300-620h40v-40q0-17 11.5-28.5T380-700q17 0 28.5 11.5T420-660v40h40q17 0 28.5 11.5T500-580q0 17-11.5 28.5T460-540h-40v40q0 17-11.5 28.5T380-460q-17 0-28.5-11.5T340-500v-40Zm40 220q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l224 224q11 11 11 28t-11 28q-11 11-28 11t-28-11L532-372q-30 24-69 38t-83 14Zm0-80q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z"/></svg>',
 		padding: { top: 20, bottom: 20, left: 20, right: 20 },
@@ -879,17 +995,14 @@ function createPhotoSwipe() {
 }
 
 const setup = () => {
-	if (!lightbox) {
-		createPhotoSwipe()
-	}
-	window.swup.hooks.on("page:view", () => {
-		createPhotoSwipe()
-	})
+	void createPhotoSwipe()
+	window.swup.hooks.on("page:view", () => void createPhotoSwipe())
 
 	window.swup.hooks.on(
 		"content:replace",
 		() => {
 			lightbox?.destroy?.()
+			lightbox = undefined
 		},
 		{ before: true },
 	)
@@ -903,11 +1016,12 @@ if (window.swup) {
 </script>
 
 <script>
-  import mermaid from 'mermaid';
+  let mermaidModule: Promise<typeof import('mermaid')> | undefined;
   
   async function initMermaid() {
     const graphs = document.querySelectorAll('.mermaid');
     if (graphs.length > 0) {
+      const { default: mermaid } = await (mermaidModule ??= import('mermaid'));
       mermaid.initialize({ 
         startOnLoad: false, 
         theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default' 

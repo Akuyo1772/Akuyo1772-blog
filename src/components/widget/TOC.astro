@@ -34,7 +34,7 @@ let heading1Count = 1;
 const maxLevel = siteConfig.toc.depth;
 ---
 {isTocRoute &&
-<table-of-contents class:list={[className, "group"]}>
+<table-of-contents role="navigation" aria-label="文章目录" class:list={[className, "group"]}>
     {headings.filter((heading) => heading.depth < minDepth + maxLevel).map((heading) =>
             <a href={`#${heading.slug}`} class="px-2 flex gap-2 relative transition w-full min-h-9 rounded-xl
         hover:bg-[var(--toc-btn-hover)] active:bg-[var(--toc-btn-active)] py-2
@@ -150,7 +150,7 @@ class TableOfContents extends HTMLElement {
         this.tocEl.scrollTo({
             top,
             left: 0,
-            behavior: "smooth",
+            behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
         });
     };
 

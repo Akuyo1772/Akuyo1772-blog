@@ -35,26 +35,28 @@ const columnCount = Math.min(2, Math.max(1, methods.length));
 			>
 				<Icon
 					name="material-symbols:volunteer-activism-rounded"
+					aria-hidden="true"
 					class="text-[1.4rem] text-[var(--primary)]"
 				/>
 				<span class="text-black/80 dark:text-white/80">{cfg.buttonText}</span>
 			</button>
 		</div>
 
-		<dialog id={dialogId} class="sponsor-dialog">
-			<div class="sponsor-dialog__panel rounded-2xl card-base px-6 md:px-7 py-6" style={`--sponsor-cols: ${columnCount};`}>
+		<dialog id={dialogId} aria-labelledby={`${dialogId}-title`} class="sponsor-dialog">
+			<div role="document" class="sponsor-dialog__panel rounded-2xl card-base px-6 md:px-7 py-6" style={`--sponsor-cols: ${columnCount};`}>
 				<div class="flex items-start justify-between gap-4 mb-4">
-					<div class="font-bold text-lg text-black/90 dark:text-white/90">
+					<div id={`${dialogId}-title`} class="font-bold text-lg text-black/90 dark:text-white/90">
 						{cfg.title}
 					</div>
 					<button
 						type="button"
 						class="btn-card rounded-lg w-10 h-10 flex items-center justify-center"
 						data-sponsor-close
-						aria-label="Close"
+						aria-label="关闭"
 					>
 						<Icon
 							name="material-symbols:close-rounded"
+							aria-hidden="true"
 							class="text-[1.5rem] text-black/60 dark:text-white/60"
 						/>
 					</button>

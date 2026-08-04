@@ -39,8 +39,12 @@ const mouseSparkConfig = {
 		if (window.__nativeMouseSparkInitialized) {
 			return;
 		}
+		if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+			return;
+		}
 		window.__nativeMouseSparkInitialized = true;
 
+		const start = () => {
 		const config = {
 			color: mouseSparkConfig.color,
 			scale: mouseSparkConfig.scale,
@@ -302,5 +306,12 @@ const mouseSparkConfig = {
 		window.addEventListener("mouseup", onMouseUp);
 		document.addEventListener("astro:after-swap", onAfterSwap);
 		state.rafId = requestAnimationFrame(loop);
+		};
+
+		if ("requestIdleCallback" in window) {
+			window.requestIdleCallback(start, { timeout: 1200 });
+		} else {
+			window.setTimeout(start, 300);
+		}
 	})();
 </script>

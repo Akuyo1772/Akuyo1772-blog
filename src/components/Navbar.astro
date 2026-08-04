@@ -7,7 +7,7 @@ import {
 	type NavBarBackground,
 	type NavBarLink,
 } from "../types/config";
-import { url } from "../utils/url-utils";
+import { isActiveLink, url } from "../utils/url-utils";
 import LightDarkSwitch from "./LightDarkSwitch.svelte";
 import ImageWrapper from "./misc/ImageWrapper.astro";
 import Search from "./Search.svelte";
@@ -17,6 +17,7 @@ import NavMenuPanel from "./widget/NavMenuPanel.astro";
 const className = Astro.props.class;
 const banner: string | undefined = Astro.props.banner;
 const bannerBasePath: string | undefined = Astro.props.bannerBasePath;
+const currentPath: string = Astro.props.currentPath ?? "";
 
 let links: NavBarLink[] = navBarConfig.links.map(
 	(item: NavBarLink | LinkPreset): NavBarLink => {
@@ -57,7 +58,7 @@ const backgroundColor =
 		: "var(--card-bg)";
 const backgroundColorStyle = `background-color: color-mix(in oklch, ${backgroundColor} ${backgroundOpacity * 100}%, transparent);`;
 ---
-<div id="navbar" class="z-50 relative w-full">
+<nav id="navbar" aria-label="主导航" class="z-50 relative w-full">
     <div class="absolute left-0 right-0 -top-8 h-[6.5rem] overflow-hidden pointer-events-none">
         {useImage && imageSrc ? (
             <ImageWrapper
@@ -76,39 +77,46 @@ const backgroundColorStyle = `background-color: color-mix(in oklch, ${background
         "card-base !transition-none !overflow-visible w-full h-[4.5rem] !rounded-none flex items-center justify-between px-4"]}>
         <a href={url('/')} class="btn-plain scale-animation rounded-lg h-[3.25rem] px-5 font-bold active:scale-95">
             <div class="flex flex-row text-[var(--primary)] items-center text-md">
-                <Icon name="material-symbols:home-outline-rounded" class="text-[1.75rem] mb-1 mr-2" />
+                <Icon name="material-symbols:home-outline-rounded" aria-hidden="true" class="text-[1.75rem] mb-1 mr-2" />
                 {siteConfig.title}
             </div>
         </a>
         <div class="hidden md:flex">
             {links.map((l) => {
+                const active = isActiveLink(l.url, currentPath, l.external);
                 return <a aria-label={l.name} href={l.external ? l.url : url(l.url)} target={l.external ? "_blank" : null}
-                          class="btn-plain scale-animation rounded-lg h-11 font-bold px-5 active:scale-95"
+                          rel={l.external ? "noopener noreferrer" : null}
+                          aria-current={active ? "page" : null}
+                          class:list={[
+                              "btn-plain scale-animation rounded-lg h-11 font-bold px-5 active:scale-95",
+                              { "nav-link-active": active },
+                          ]}
+                          data-nav-link={l.external ? null : l.url}
                 >
                     <div class="flex items-center">
                         {l.name}
-                        {l.external && <Icon name="fa6-solid:arrow-up-right-from-square" class="text-[0.875rem] transition -translate-y-[1px] ml-1 text-black/[0.2] dark:text-white/[0.2]"></Icon>}
+                        {l.external && <Icon name="fa6-solid:arrow-up-right-from-square" aria-hidden="true" class="text-[0.875rem] transition -translate-y-[1px] ml-1 text-black/[0.2] dark:text-white/[0.2]"></Icon>}
                     </div>
                 </a>;
             })}
         </div>
         <div class="flex">
             <!--<SearchPanel client:load>-->
-            <Search client:load></Search>
+            <Search client:idle></Search>
             {!siteConfig.themeColor.fixed && (
-                    <button aria-label="Display Settings" class="btn-plain scale-animation rounded-lg h-11 w-11 active:scale-90" id="display-settings-switch">
-                        <Icon name="material-symbols:palette-outline" class="text-[1.25rem]"></Icon>
+                    <button type="button" aria-label="显示设置" aria-controls="display-setting" aria-expanded="false" class="btn-plain scale-animation rounded-lg h-11 w-11 active:scale-90" id="display-settings-switch">
+                        <Icon name="material-symbols:palette-outline" aria-hidden="true" class="text-[1.25rem]"></Icon>
                     </button>
             )}
-            <LightDarkSwitch client:load></LightDarkSwitch>
-            <button aria-label="Menu" name="Nav Menu" class="btn-plain scale-animation rounded-lg w-11 h-11 active:scale-90 md:!hidden" id="nav-menu-switch">
-                <Icon name="material-symbols:menu-rounded" class="text-[1.25rem]"></Icon>
+            <LightDarkSwitch client:idle></LightDarkSwitch>
+            <button type="button" aria-label="打开导航菜单" aria-controls="nav-menu-panel" aria-expanded="false" name="Nav Menu" class="btn-plain scale-animation rounded-lg w-11 h-11 active:scale-90 md:!hidden" id="nav-menu-switch">
+                <Icon name="material-symbols:menu-rounded" aria-hidden="true" class="text-[1.25rem]"></Icon>
             </button>
         </div>
-        <NavMenuPanel links={links}></NavMenuPanel>
-        <DisplaySettings client:load></DisplaySettings>
+        <NavMenuPanel links={links} currentPath={currentPath}></NavMenuPanel>
+        <DisplaySettings client:idle></DisplaySettings>
     </div>
-</div>
+</nav>
 
 <script>
 function switchTheme() {
@@ -134,7 +142,9 @@ function loadButtonScript() {
         settingBtn.onclick = function () {
             let settingPanel = document.getElementById("display-setting");
             if (settingPanel) {
-                settingPanel.classList.toggle("float-panel-closed");
+                const isClosed = settingPanel.classList.toggle("float-panel-closed");
+                settingPanel.setAttribute("aria-hidden", String(isClosed));
+                settingBtn.setAttribute("aria-expanded", String(!isClosed));
             }
         };
     }
@@ -144,7 +154,9 @@ function loadButtonScript() {
         menuBtn.onclick = function () {
             let menuPanel = document.getElementById("nav-menu-panel");
             if (menuPanel) {
-                menuPanel.classList.toggle("float-panel-closed");
+                const isClosed = menuPanel.classList.toggle("float-panel-closed");
+                menuPanel.setAttribute("aria-hidden", String(isClosed));
+                menuBtn.setAttribute("aria-expanded", String(!isClosed));
             }
         };
     }
@@ -182,9 +194,44 @@ async function loadPagefind() {
     }
 }
 
+function schedulePagefind() {
+    const run = () => void loadPagefind();
+    if ('requestIdleCallback' in window) {
+        window.requestIdleCallback(run, { timeout: 1500 });
+    } else {
+        window.setTimeout(run, 500);
+    }
+}
+
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', loadPagefind);
+    document.addEventListener('DOMContentLoaded', schedulePagefind, { once: true });
 } else {
-    loadPagefind();
+    schedulePagefind();
 }
 </script>}
+
+<script is:inline define:vars={{ baseUrl: import.meta.env.BASE_URL }}>
+function updateNavActive() {
+    const currentPath = window.location.pathname.replace(/\/$/, '');
+
+    document.querySelectorAll('[data-nav-link], [data-nav-menu-link]').forEach((element) => {
+        const rawUrl = element.getAttribute('data-nav-link') || element.getAttribute('data-nav-menu-link');
+        if (!rawUrl) return;
+        const resolved = (baseUrl + '/' + rawUrl).replace(/\/+/g, '/').replace(/\/$/, '');
+        const active = rawUrl === '/' ? currentPath === resolved : currentPath === resolved || currentPath.startsWith(resolved + '/');
+        element.classList.toggle('nav-link-active', active && element.hasAttribute('data-nav-link'));
+        element.classList.toggle('nav-menu-active', active && element.hasAttribute('data-nav-menu-link'));
+        if (active) element.setAttribute('aria-current', 'page');
+        else element.removeAttribute('aria-current');
+    });
+}
+
+updateNavActive();
+if (window.swup) {
+    window.swup.hooks.on('page:view', updateNavActive);
+} else {
+    document.addEventListener('swup:enable', () => {
+        window.swup?.hooks.on('page:view', updateNavActive);
+    }, { once: true });
+}
+</script>

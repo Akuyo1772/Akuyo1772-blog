@@ -29,19 +29,19 @@ export const siteConfig: SiteConfig = {
 		 * 默认主题色 Hue（0~360）。
 		 * 例如：红 0，青绿 200，青蓝 250，粉 345。
 		 */
-		hue: 250,
+		hue: 310,
 		/**
 		 * 是否对访客隐藏主题色选择器。
 		 * - true：访客不能调主题色（固定为 hue）
 		 * - false：允许访客在前端面板里调整
 		 */
-		fixed: false,
+		fixed: true,
 	},
 	banner: {
 		/**
 		 * 是否启用顶部横幅图（通常在首页/列表页更明显）。
 		 */
-		enable: true,
+		enable: false,
 		/**
 		 * 横幅图片路径：
 		 * - 不以 '/' 开头：相对 `src/`（例如 `assets/images/...`）
@@ -70,7 +70,7 @@ export const siteConfig: SiteConfig = {
 	background: {
 		type: "image",
 		/** 背景资源路径：`src/` 下相对路径或 `public/` 绝对路径 */
-		src: "assets/images/bg.svg",
+		src: "assets/images/bg.png",
 		/** 背景图位置（等价 object-position） */
 		position: "center",
 		/** 背景图不透明度（0~1） */

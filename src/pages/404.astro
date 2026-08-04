@@ -4,12 +4,12 @@ import { url } from "@utils/url-utils";
 ---
 
 <Layout title="404" description="页面不存在" disableBackground={true}>
-	<section class="w-full min-h-screen flex items-center justify-center text-center">
+	<main id="swup-container" tabindex="-1" class="w-full min-h-screen flex items-center justify-center text-center">
 		<div class="w-full flex flex-col items-center justify-center text-center gap-6 px-10">
-			<img src={url("/icons/404-page.png")} alt="404" class="w-28 h-28 md:w-36 md:h-36" />
-			<div class="text-3xl md:text-4xl font-bold text-90">
+			<img src={url("/icons/404-page.png")} alt="" class="w-28 h-28 md:w-36 md:h-36" />
+			<h1 class="text-3xl md:text-4xl font-bold text-90">
 				你来到了未知的领域
-			</div>
+			</h1>
 			<div class="text-base md:text-lg text-50">
 				404 Not Found
 			</div>
@@ -20,6 +20,6 @@ import { url } from "@utils/url-utils";
 				返回主页
 			</a>
 		</div>
-	</section>
+	</main>
 
 </Layout>

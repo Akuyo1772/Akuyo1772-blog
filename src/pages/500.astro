@@ -9,12 +9,12 @@ const { error } = Astro.props;
 ---
 
 <Layout title="500" description="服务器错误" disableBackground={true}>
-	<section class="w-full min-h-screen flex items-center justify-center text-center">
+	<main id="swup-container" tabindex="-1" class="w-full min-h-screen flex items-center justify-center text-center">
 		<div class="w-full flex flex-col items-center justify-center text-center gap-6 px-10">
-			<img src={url("/icons/500-page.png")} alt="500" class="w-28 h-28 md:w-36 md:h-36" />
-			<div class="text-3xl md:text-4xl font-bold text-90">
+			<img src={url("/icons/500-page.png")} alt="" class="w-28 h-28 md:w-36 md:h-36" />
+			<h1 class="text-3xl md:text-4xl font-bold text-90">
 			    诶？ 服务器出错了 !
-			</div>
+			</h1>
 			<div class="text-base md:text-lg text-50">
 				{error instanceof Error ? error.message : "Unknown error"}
 			</div>
@@ -22,6 +22,6 @@ const { error } = Astro.props;
 				返回主页
 			</a>
 		</div>
-	</section>
+	</main>
 
 </Layout>

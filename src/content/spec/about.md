@@ -5,11 +5,11 @@
 
 欢迎来到我的博客！
 
-这是关于页面，你可以在这里介绍自己。
+努力，亦或者不努力？总之正在试图转职成为IT高手中！
 
-编辑 `src/content/spec/about.md` 来添加你的内容。
+有着写文的爱好，喵喵。
 
 ## 联系方式
 
-- GitHub: [yourusername](https://github.com/yourusername)
-- Email: your@email.com
+- GitHub: [Akuyo1772](https://github.com/Akuyo1772)
+- Email: 3598951433@qq.com

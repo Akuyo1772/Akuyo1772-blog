@@ -61,7 +61,7 @@ const galleryBasePath = path.join(
 								<div class="relative aspect-square overflow-hidden rounded-lg bg-black/5 dark:bg-white/10 cursor-pointer">
 									<ImageWrapper
 										src={img.src}
-										alt={img.alt || ""}
+										alt={img.alt || `${seoTitle} 图片 ${index + 1}`}
 										basePath={galleryBasePath}
 										class="w-full h-full"
 									/>
@@ -90,7 +90,7 @@ const galleryBasePath = path.join(
 				<span class="inline-flex items-center gap-2 align-middle">
 					{isPinned && (
 						<span class="inline-flex items-center rounded-md px-2 py-0.5 text-lg md:text-xl leading-none font-semibold bg-[var(--primary)]/10 text-[var(--primary)]">
-							<Icon name="material-symbols:keep-rounded" class="mr-1 text-base"></Icon>
+											<Icon name="material-symbols:keep-rounded" aria-hidden="true" class="mr-1 text-base"></Icon>
 							{i18n(I18nKey.pinned)}
 						</span>
 					)}
@@ -102,7 +102,7 @@ const galleryBasePath = path.join(
 				{isPinned && (
 					<div class="mb-2">
 						<span class="inline-flex items-center rounded-md px-2 py-0.5 text-lg leading-none font-semibold bg-[var(--primary)]/10 text-[var(--primary)]">
-							<Icon name="material-symbols:keep-rounded" class="mr-1 text-base"></Icon>
+							<Icon name="material-symbols:keep-rounded" aria-hidden="true" class="mr-1 text-base"></Icon>
 							{i18n(I18nKey.pinned)}
 						</span>
 					</div>

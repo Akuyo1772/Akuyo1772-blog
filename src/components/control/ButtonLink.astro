@@ -6,8 +6,7 @@ interface Props {
 }
 const { badge, url, label } = Astro.props;
 ---
-<a href={url} aria-label={label}>
-    <button
+<a href={url} aria-label={label}
         class:list={`
             w-full
             h-10
@@ -39,5 +38,4 @@ const { badge, url, label } = Astro.props;
                 </div>
             }
         </div>
-    </button>
 </a>

@@ -60,14 +60,14 @@ const isPinned = Number(entry.data.pin ?? 0) > 0;
             <span class="inline-flex items-center gap-2 align-middle">
                 {isPinned && (
                     <span class="inline-flex items-center rounded-md px-2 py-0.5 text-xl leading-none font-semibold bg-[var(--primary)]/10 text-[var(--primary)]">
-                        <Icon name="material-symbols:keep-rounded" class="mr-1 text-base"></Icon>
+                        <Icon name="material-symbols:keep-rounded" aria-hidden="true" class="mr-1 text-base"></Icon>
                         {i18n(I18nKey.pinned)}
                     </span>
                 )}
                 <span>{title}</span>
             </span>
-            <Icon class="inline text-[2rem] text-[var(--primary)] md:hidden translate-y-0.5 absolute" name="material-symbols:chevron-right-rounded" ></Icon>
-            <Icon class="text-[var(--primary)] text-[2rem] transition hidden md:inline absolute translate-y-0.5 opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0" name="material-symbols:chevron-right-rounded"></Icon>
+            <Icon aria-hidden="true" class="inline text-[2rem] text-[var(--primary)] md:hidden translate-y-0.5 absolute" name="material-symbols:chevron-right-rounded" ></Icon>
+            <Icon aria-hidden="true" class="text-[var(--primary)] text-[2rem] transition hidden md:inline absolute translate-y-0.5 opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0" name="material-symbols:chevron-right-rounded"></Icon>
         </a>
 
         <!-- metadata -->
@@ -102,7 +102,7 @@ const isPinned = Number(entry.data.pin ?? 0) > 0;
                   class="transition opacity-0 group-hover:opacity-100 scale-50 group-hover:scale-100 text-white text-5xl">
             </Icon>
         </div>
-        <ImageWrapper src={image} basePath={path.join(`content/${collection}/`, getDir(entry.id))} alt="Cover Image of the Post"
+        <ImageWrapper src={image} basePath={path.join(`content/${collection}/`, getDir(entry.id))} alt={`${title} 封面`}
                   class="w-full h-full">
         </ImageWrapper>
     </a>}
@@ -112,7 +112,7 @@ const isPinned = Number(entry.data.pin ?? 0) > 0;
          absolute right-3 top-3 bottom-3 rounded-xl bg-[var(--enter-btn-bg)]
          hover:bg-[var(--enter-btn-bg-hover)] active:bg-[var(--enter-btn-bg-active)] active:scale-95
         ">
-            <Icon name="material-symbols:chevron-right-rounded"
+            <Icon name="material-symbols:chevron-right-rounded" aria-hidden="true"
                   class="transition text-[var(--primary)] text-4xl mx-auto">
             </Icon>
         </a>
